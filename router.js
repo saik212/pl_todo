@@ -46,7 +46,7 @@ router.route('/api/todos')
 
 	.post(function (req, res) {
 		totalItems+=1;
-		var newItem = {id: totalItems, desc:'New todo '+ totalItems, complete: false};
+		var newItem = {id: totalItems, desc: req.body.desc, complete: false};
 		todoList.push(newItem);
 		res.json(newItem);
 	});
@@ -61,7 +61,8 @@ router.route('/api/todos/:id')
 	.put(function (req, res) {
 		var reqId = parseInt(req.params.id);
 		var item = todoList[searchList(reqId)];
-		res.json('Updating todo: ' + item.desc);
+		item.complete = req.body.complete;
+		res.json(item);
 	})
 
 	.delete(function (req, res){
