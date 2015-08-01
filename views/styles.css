@@ -1,0 +1,89 @@
+html, body, section, article, div,
+h1, h2, p, strong, em, a, ul, li,
+nav, header, form, img {
+	margin: 0;
+	border: 0;
+	padding: 0;
+	outline: 0;
+	box-sizing: inherit;
+	font: inherit;
+	text-decoration: inherit;
+	text-align: inherit;
+	color: inherit;
+	background: transparent;
+	box-sizing: inherit;
+}
+
+ul, li {
+	list-style: none;
+}
+
+/*clearfix*/
+.group:after {
+	content: "";
+	display: block;
+	clear: both;
+}
+
+/*app header*/
+.title-main {
+	width: 1000px;
+	margin: auto;
+	text-align: center;
+	font-size: 50px;
+	font-family: 'Lato'
+}
+
+.list-container {
+	width:600px;
+	margin: auto;
+	padding: 20px;
+	border-radius: 6px;
+	background-color: #2c3e50;
+}
+
+.add-todo-wrapper {
+	margin-bottom: 40px;
+}
+
+.add-todo {
+	padding: 20px 25px;
+	background-color: #fff;
+	border-radius: 5px;
+}
+
+.add-todo > textarea {
+	margin: 0px;
+	float: left;
+  min-height: 75px;
+  min-width: 362px;
+  font-size: 15px;
+}
+
+.add-btn {
+  float: right;
+  margin-right: 4px;
+  margin-top: 8px;
+  padding: 17px;
+  background-color: #C90;
+  border-radius: 6px;
+  font-size: 26px;
+}
+
+.add-btn:hover {
+	cursor: pointer;
+}
+
+.todos {
+	width: 600px;
+	margin: auto;
+	border-radius: 6px;
+	padding: 10px;
+	box-sizing: border-box;
+	background-color: #f1c40f;
+	color: #000;
+}
+
+.todo {
+	
+}
