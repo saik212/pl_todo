@@ -89,7 +89,7 @@ Bucket.Views.List = Backbone.View.extend({
 					});
 				} else {
 
-					$('.todo'+todoId).append("<h1 class='error'>Cannot Reinstate An Item</h1>");
+					$('.todo'+todoId).append("<h1 class='error' style='color:red'>cannot reinstate an item</h1>");
 					window.setTimeout(function () {
 						$('.error').remove();
 					}, 2000);
