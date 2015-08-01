@@ -17,7 +17,10 @@ window.Bucket = {
 			url:'api/todos'
 		});
 
-		
+		Bucket.todos = new Bucket.Collections.Todos();
+		Bucket.todos.fetch();
+
+		Bucket.mainView = new Bucket.Views.List({el: "#content"});
 	}
 
 };
