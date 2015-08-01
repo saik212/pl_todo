@@ -1,7 +1,7 @@
 Bucket.Views.List = Backbone.View.extend({
 	initialize: function (options) {
 		this.list = $('.todos');
-		this.listenTo(Bucket.todos, 'sync', this.render);
+		this.listenTo(Bucket.todos, 'sync add remove', this.render);
 	},
 
 	events: {
@@ -31,14 +31,32 @@ Bucket.Views.List = Backbone.View.extend({
 		event.preventDefault();
 
 		var text = $('.new-todo').val();
-		console.log(text);
-		console.log('Trying to add a todo!');
+		var todo = new Bucket.Models.Todo({desc: text});
+		todo.save({}, {
+			success: function () {
+				Bucket.todos.add(todo);
+				console.log("Added todo");
+			},
+			error: function (req, res) {
+				console.log('Errored out');
+				console.log(res);
+			}
+		})
 	},
 
 	deleteTodo: function (event) {
 		event.preventDefault();
 		
 		var todoId = $(event.target).data('id');
+
+		var todo = new Bucket.Models.Todo({id: todoId});
+		todo.fetch({
+			success: function () {
+				todo.destroy();
+				Bucket.todos.remove(todo);
+			}
+		});
+
 		console.log('delete todo #'+todoId);
 	},
 
@@ -47,5 +65,21 @@ Bucket.Views.List = Backbone.View.extend({
 		
 		var todoId = $(event.target).data('id');
 		console.log('update todo #:'+todoId);
+
+		var todo = new Bucket.Models.Todo({id: todoId});
+		todo.fetch({
+			success: function () {
+				if (todo.get('complete') === false) {
+					todo.set({complete: true});
+					todo.save({}, {
+						success: function () {
+							console.log('saved completion');
+						}
+					});
+				} else {
+					console.log('cannot reinstate todo');
+				}
+			}
+		});
 	}
 });
