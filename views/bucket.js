@@ -2,7 +2,6 @@ window.Bucket = {
 	Models: {},
 	Collections: {},
 	Views: {},
-	Routers: {},
 	
 	initialize: function() {
 		console.log('Hello World, from Backbone!');

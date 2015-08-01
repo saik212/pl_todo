@@ -18,6 +18,10 @@ ul, li {
 	list-style: none;
 }
 
+body {
+	background-color: #ecf0f1;
+}
+
 /*clearfix*/
 .group:after {
 	content: "";
@@ -29,61 +33,101 @@ ul, li {
 .title-main {
 	width: 1000px;
 	margin: auto;
+	margin-bottom: 20px;
 	text-align: center;
 	font-size: 50px;
 	font-family: 'Lato'
 }
 
 .list-container {
-	width:600px;
+	width:1000px;
 	margin: auto;
 	padding: 20px;
 	border-radius: 6px;
-	background-color: #2c3e50;
+	background-color: #98C4F0;
 }
 
 .add-todo-wrapper {
 	margin-bottom: 40px;
+	float: right;
+	width: 360px;
+}
+
+.new-header {
+	font-size: 28px;
+	margin-bottom: 7px;
 }
 
 .add-todo {
 	padding: 20px 25px;
-	background-color: #fff;
+	background-color: #FFFFFF;
 	border-radius: 5px;
 }
 
 .add-todo > textarea {
 	margin: 0px;
-	float: left;
   min-height: 75px;
-  min-width: 362px;
+  width: 300px;
   font-size: 15px;
 }
 
 .add-btn {
-  float: right;
-  margin-right: 4px;
+  margin: auto;
   margin-top: 8px;
   padding: 17px;
-  background-color: #C90;
+  background-color: #C0D6E2;
   border-radius: 6px;
   font-size: 26px;
+  text-align: center;
+  width: 120px;
 }
 
 .add-btn:hover {
 	cursor: pointer;
 }
 
+.todos-header {
+  width: 300px;
+
+  font-size: 28px;
+} 
+
 .todos {
+	float: left;
 	width: 600px;
 	margin: auto;
 	border-radius: 6px;
-	padding: 10px;
 	box-sizing: border-box;
-	background-color: #f1c40f;
 	color: #000;
 }
 
 .todo {
-	
+	margin: 7px 0 23px 0;
+  background-color: #FFFFFF;
+  padding: 10px 15px;
+  border-radius: 6px;
 }
+
+.todo-desc {
+	float: left;
+	max-width: 300px;
+	font-size: 20px;
+}
+
+.todo-status {
+	float: right;
+	font-size: 14px;
+}
+
+.updt {
+	margin-right: 10px;
+}
+
+.updt:hover, .dlt:hover {
+	cursor: pointer;
+}
+
+
+
+
+

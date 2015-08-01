@@ -18,9 +18,19 @@ Bucket.Views.List = Backbone.View.extend({
 	renderTodos: function () {
 		var that = this;
 		Bucket.todos.forEach(function (todo) {
-			var todoTemplate = "<li class='todo'><span>"+todo.get('desc')+
-						"</span><span><i data-id="+todo.id+" class='updt fa fa-check-square-o'>Complete</i><i data-id="+todo.id+
-						" class='dlt fa fa-trash'>Delete</i></span></li>";
+			var statusClass, statusText;
+
+			if (todo.get('complete') === false) {
+				statusClass = 'stat-inc';
+				statusText = 'Incomplete';
+			} else {
+				statusClass = 'stat-comp';
+				statusText = 'Complete';
+			}
+
+			var todoTemplate = "<li class='todo group'><span class='todo-desc'>- "+todo.get('desc')+
+						"</span><span class='todo-status todo"+todo.id+"'><i data-id="+todo.id+" class='updt "+statusClass+" fa fa-check-square-o'>  Mark as "
+						+statusText+"</i><i data-id="+todo.id+" class='dlt fa fa-trash'>Delete</i></span></li>";
 			that.list.append(todoTemplate);
 		});
 
@@ -62,6 +72,7 @@ Bucket.Views.List = Backbone.View.extend({
 
 	updateTodo: function (event) {
 		event.preventDefault();
+		var that = this;
 		
 		var todoId = $(event.target).data('id');
 		console.log('update todo #:'+todoId);
@@ -73,11 +84,15 @@ Bucket.Views.List = Backbone.View.extend({
 					todo.set({complete: true});
 					todo.save({}, {
 						success: function () {
-							console.log('saved completion');
+							Bucket.todos.fetch();
 						}
 					});
 				} else {
-					console.log('cannot reinstate todo');
+
+					$('.todo'+todoId).append("<h1 class='error'>Cannot Reinstate An Item</h1>");
+					window.setTimeout(function () {
+						$('.error').remove();
+					}, 2000);
 				}
 			}
 		});

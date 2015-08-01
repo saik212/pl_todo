@@ -61,6 +61,7 @@ router.route('/api/todos/:id')
 	.put(function (req, res) {
 		var reqId = parseInt(req.params.id);
 		var item = todoList[searchList(reqId)];
+		item.desc = req.body.desc;
 		item.complete = req.body.complete;
 		res.json(item);
 	})
