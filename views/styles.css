@@ -1,3 +1,7 @@
+/*Overall, this CSS could be DRYer. I opted not to use Bootstrap as I am
+inexperienced with it and due to time concerns. In the future, I would 
+prefer to use it, as it would make initial page setup easier.*/
+
 html, body, section, article, div,
 h1, h2, p, strong, em, a, ul, li,
 nav, header, form, img {
@@ -39,6 +43,7 @@ body {
 	font-family: 'Lato'
 }
 
+/*main content*/
 .list-container {
 	width:1000px;
 	margin: auto;
@@ -47,6 +52,7 @@ body {
 	background-color: #98C4F0;
 }
 
+/*new to-do form styles*/
 .add-todo-wrapper {
 	margin-bottom: 40px;
 	float: right;
@@ -84,7 +90,11 @@ body {
 
 .add-btn:hover {
 	cursor: pointer;
+	color: #FFFFFF;
+	text-shadow: #000 2px 2px 2px;
 }
+
+/*to-do list styles*/
 
 .todos-header {
   width: 300px;
@@ -101,6 +111,7 @@ body {
 	color: #000;
 }
 
+/*to-do list-item styles*/
 .todo {
 	margin: 7px 0 23px 0;
   background-color: #FFFFFF;
@@ -125,6 +136,22 @@ body {
 
 .updt:hover, .dlt:hover {
 	cursor: pointer;
+}
+
+.updt:hover {
+	color: green;
+}
+
+.dlt:hover {
+	color: red;
+}
+
+.stat-comp {
+	color: green;
+}
+
+.stat-comp:hover {
+	color: #000;
 }
 
 

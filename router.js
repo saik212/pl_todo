@@ -1,8 +1,15 @@
+// Setting up the routing for the application. Requests for data go through routes namespaced with /api/
+// For a simple to-do list, only CRUD routes are used
+// Update route allows for updating a to-do description and completion status.
+// Description edit functionality not built on front-end
+
+
 var express = require('express');
 var router = express.Router();
 
 
 // Pseudo DB setup
+// In the interest of time, an array of objects is used as the the data to be used
 var todoList = [
 		{id:1, desc: 'Go skydiving', complete: false},
 		{id:2, desc: 'Watch The Matrix', complete: false},
@@ -40,10 +47,12 @@ router.get('/', function (req, res) {
 // Basic CRUD for todos
 
 router.route('/api/todos')
+	// Sending up collection of to-dos
 	.get(function (req, res) {
 		res.json(todoList);
 	})
 
+	// Creating a new to-do
 	.post(function (req, res) {
 		totalItems+=1;
 		var newItem = {id: totalItems, desc: req.body.desc, complete: false};
@@ -52,12 +61,14 @@ router.route('/api/todos')
 	});
 
 router.route('/api/todos/:id')
+	// Sending up a single to-do
 	.get(function (req, res) {
 		var reqId = parseInt(req.params.id);
 			
 		res.json(todoList[searchList(reqId)]);
 	})
 
+	// Updating a single to-do
 	.put(function (req, res) {
 		var reqId = parseInt(req.params.id);
 		var item = todoList[searchList(reqId)];
@@ -66,6 +77,7 @@ router.route('/api/todos/:id')
 		res.json(item);
 	})
 
+	// Deleting a single to-do
 	.delete(function (req, res){
 		var reqId = parseInt(req.params.id);
 		var delIdx = searchList(reqId);
