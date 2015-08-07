@@ -6,6 +6,8 @@
 
 var express = require('express');
 var router = express.Router();
+var Parse = require('parse').Parse;
+Parse.User.enableUnsafeCurrentUser();
 
 
 // Pseudo DB setup
