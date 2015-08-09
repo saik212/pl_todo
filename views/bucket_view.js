@@ -9,23 +9,23 @@ Bucket.Views.List = Backbone.View.extend({
 		this.list = $('.todos');
 		this.form = $('.add-todo-wrapper');
 		this.listenTo(Bucket.todos, 'sync add remove', this.render);
+		this.listenTo(Parse.User.current(), 'change', this.stuff);
 	},
 
 	events: {
 		"click .add-btn": "addTodo",
 		"click .dlt": "deleteTodo",
 		"click .updt": "updateTodo",
-		"click #sign-in": "signIn"
+		"click #sign-in": "signIn",
+		"click .logout": "logOut"
 	},
 
 	render: function () {
+		$(this.el).empty();
 		if (Parse.User.current()) {
-			this.list.empty();
-			this.form.empty();
-			this.renderTodoForm();
-			this.renderTodos();
+			this.renderContent();
 		} else {
-			// console.log('no current user');
+			console.log('no current user');
 			this.renderSignIn();
 		}
 	},
@@ -44,15 +44,25 @@ Bucket.Views.List = Backbone.View.extend({
     $(this.el).html(formTemplate);
 	},
 
+	renderContent: function () {
+		var contentTemplate = "<div class='list-container group'><div class='logout'>Logout</div><div class='add-todo-wrapper'>"+
+			"</div><ul class='todos'></ul></div>";
+
+		$(this.el).html(contentTemplate);
+		this.renderTodoForm();
+		this.renderTodos();
+
+	},
+
 	renderTodoForm: function () {
-		var that = this;
+		var form = $('.add-todo-wrapper');
 
 		var formTemplate = "<h1 class='new-header'>New item:</h1>"+
 				"<div class='add-todo group'>"+
 					"<textarea class='new-todo'></textarea>"+
 					"<div class='add-btn'>Add Item</div>"+
 				"</div>";
-		this.form.append(formTemplate);
+		form.append(formTemplate);
 
 	},
 
@@ -62,7 +72,7 @@ Bucket.Views.List = Backbone.View.extend({
 // It would be cleaner to have the HTML inside a template file. It is here out of convenience.
 // This function also applies the appropriate classes and attributes to a to-do based on completion status.
 	renderTodos: function () {
-		var that = this;
+		var list = $('.todos');
 		Bucket.todos.forEach(function (todo) {
 			var statusClass, statusText;
 
@@ -77,7 +87,7 @@ Bucket.Views.List = Backbone.View.extend({
 			var todoTemplate = "<li class='todo group'><span class='todo-desc'>- "+todo.get('desc')+
 						"</span><span class='todo-status todo"+todo.id+"'><i data-id="+todo.id+" class='updt "+
 						statusClass+" fa fa-check-square-o'>  Mark as "+statusText+"</i><i data-id="+todo.id+" class='dlt fa fa-trash'>Delete</i></span></li>";
-			that.list.append(todoTemplate);
+			list.append(todoTemplate);
 		});
 
 
@@ -164,10 +174,19 @@ Bucket.Views.List = Backbone.View.extend({
 		Parse.User.logIn(username, password, {
 			success: function () {
 				console.log('Successfully Logged In');
+				that.render();
 			},
 			error: function (error) {
 				console.log('Login Failed');
 			}
 		});
 	},	
+
+	logOut: function (event) {
+		event.preventDefault();
+		var that = this;
+
+		Parse.User.logOut();
+		this.render();
+	}
 });
