@@ -7,19 +7,55 @@
 Bucket.Views.List = Backbone.View.extend({
 	initialize: function (options) {
 		this.list = $('.todos');
+		this.form = $('.add-todo-wrapper');
 		this.listenTo(Bucket.todos, 'sync add remove', this.render);
 	},
 
 	events: {
 		"click .add-btn": "addTodo",
 		"click .dlt": "deleteTodo",
-		"click .updt": "updateTodo"
+		"click .updt": "updateTodo",
+		"click #sign-in": "signIn"
 	},
 
 	render: function () {
-		this.list.empty();
-		this.renderTodos();
+		if (Parse.User.current()) {
+			this.list.empty();
+			this.form.empty();
+			this.renderTodoForm();
+			this.renderTodos();
+		} else {
+			// console.log('no current user');
+			this.renderSignIn();
+		}
 	},
+
+	renderSignIn: function () {
+		var formTemplate = "<form class='form-signin'>"+
+        "<h2 class='form-signin-heading'>Please sign in</h2>"+
+        "<label for='inputUsername' class='sr-only'>Username</label>"+
+        "<input id='inputUsername' class='form-control' placeholder='Username'>"+
+        "<label for='inputPassword' class='sr-only'>Password</label>"+
+        "<input type='password' id='inputPassword' class='form-control' placeholder='Password'>"+
+        "<button class='btn btn-lg btn-primary btn-block' id='sign-in' type='submit'>Sign in</button>"+
+	      "</form>";
+
+
+    $(this.el).html(formTemplate);
+	},
+
+	renderTodoForm: function () {
+		var that = this;
+
+		var formTemplate = "<h1 class='new-header'>New item:</h1>"+
+				"<div class='add-todo group'>"+
+					"<textarea class='new-todo'></textarea>"+
+					"<div class='add-btn'>Add Item</div>"+
+				"</div>";
+		this.form.append(formTemplate);
+
+	},
+
 
 
 // When rendering the to-dos, I created a template for the list-items to be added to the list of to-dos.
@@ -115,5 +151,23 @@ Bucket.Views.List = Backbone.View.extend({
 				}
 			}
 		});
-	}
+	},
+
+// User sign-in
+	signIn: function (event) {
+		event.preventDefault();
+		var that = this;
+
+		var username = $('#inputUsername').val();
+		var password = $('#inputPassword').val();
+
+		Parse.User.logIn(username, password, {
+			success: function () {
+				console.log('Successfully Logged In');
+			},
+			error: function (error) {
+				console.log('Login Failed');
+			}
+		});
+	},	
 });

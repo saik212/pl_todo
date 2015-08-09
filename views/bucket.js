@@ -30,6 +30,7 @@ window.Bucket = {
 
 };
 
+Parse.initialize("U6by9eTVp9ZiAgsGruUpnhL8RIJXxc4ka9Y3niP9", "rHVii2SEnus7m0dHHthdRSxbsnzG0nOkkGVgjuTu");
 
 $(document).ready(function () {
 	Bucket.initialize();

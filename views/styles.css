@@ -52,6 +52,16 @@ body {
 	background-color: #98C4F0;
 }
 
+/*sign-in*/
+.form-signin {
+	width: 300px;
+	margin: auto;
+}
+
+.form-signin-heading {
+	text-align: center;
+}
+
 /*new to-do form styles*/
 .add-todo-wrapper {
 	margin-bottom: 40px;
