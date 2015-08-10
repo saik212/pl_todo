@@ -4,13 +4,12 @@
 // allowing for only certain parts of the page re-rendered when necessary
 
 
-Bucket.Views.List = Backbone.View.extend({
+Bucket.Views.Main = Backbone.View.extend({
 	initialize: function (options) {
-		this.list = $('.todos');
-		this.form = $('.add-todo-wrapper');
+		if (Parse.User.current()) {
+			this.currentUser = Parse.User.current().attributes.username;
+		}
 		this.listenTo(Bucket.todos, 'sync add remove', this.render);
-		// this.listenTo(Parse.User.current(), 'change', this.stuff);
-		// this.render();
 	},
 
 	events: {
@@ -18,6 +17,7 @@ Bucket.Views.List = Backbone.View.extend({
 		"click .dlt": "deleteTodo",
 		"click .updt": "updateTodo",
 		"click #sign-in": "signIn",
+		"click #sign-up": "signUp",
 		"click .logout": "logOut"
 	},
 
@@ -33,12 +33,15 @@ Bucket.Views.List = Backbone.View.extend({
 
 	renderSignIn: function () {
 		var formTemplate = "<form class='form-signin'>"+
-        "<h2 class='form-signin-heading'>Please sign in</h2>"+
         "<label for='inputUsername' class='sr-only'>Username</label>"+
         "<input id='inputUsername' class='form-control' placeholder='Username'>"+
         "<label for='inputPassword' class='sr-only'>Password</label>"+
         "<input type='password' id='inputPassword' class='form-control' placeholder='Password'>"+
         "<button class='btn btn-lg btn-primary btn-block' id='sign-in' type='submit'>Sign in</button>"+
+        "<h1 class='form-signin-heading'>Or</h1>"+
+        "<label for='inputPassword' class='sr-only'>Password</label>"+
+        "<input type='password' id='reInputPassword' class='form-control' placeholder='Re-Enter Password'>"+
+        "<button class='btn btn-lg btn-primary btn-block' id='sign-up' type='submit'>Sign Up</button>"+
 	      "</form>";
 
 
@@ -46,7 +49,8 @@ Bucket.Views.List = Backbone.View.extend({
 	},
 
 	renderContent: function () {
-		var contentTemplate = "<div class='list-container group'><div class='logout'>Logout</div><div class='add-todo-wrapper'>"+
+		var contentTemplate = "<div class='list-container group'><button type='button' class="+
+			"'logout btn btn-danger btn-lg'>Logout</button><h1>"+this.currentUser+"'s List:</h1><div class='add-todo-wrapper'>"+
 			"</div><ul class='todos'></ul></div>";
 
 		$(this.el).html(contentTemplate);
@@ -59,10 +63,11 @@ Bucket.Views.List = Backbone.View.extend({
 		var form = $('.add-todo-wrapper');
 
 		var formTemplate = "<h1 class='new-header'>New item:</h1>"+
-				"<div class='add-todo group'>"+
-					"<textarea class='new-todo'></textarea>"+
-					"<div class='add-btn'>Add Item</div>"+
-				"</div>";
+											 "<div class='add-todo group'>"+
+											 "<textarea class='new-todo'></textarea>"+
+											 "<button type='button' class='btn btn-success btn-lg add-btn'>Add Item</button>"+
+											 "</div>";
+
 		form.append(formTemplate);
 
 	},
@@ -99,9 +104,10 @@ Bucket.Views.List = Backbone.View.extend({
 		event.preventDefault();
 
 		var text = $('.new-todo').val();
-		var todo = new Bucket.Models.Todo({desc: text, createdBy: Parse.User.current().attributes.username});
+		var todo = new Bucket.Models.Todo({desc: text, createdBy: this.currentUser});
 		todo.save({}, {
-			success: function () {
+			success: function (req, res) {
+				todo.set({id: res.objectId});
 				Bucket.todos.add(todo);
 			},
 			error: function (req, res) {
@@ -126,7 +132,6 @@ Bucket.Views.List = Backbone.View.extend({
 			}
 		});
 
-		console.log('delete todo #'+todoId);
 	},
 
 
@@ -141,7 +146,6 @@ Bucket.Views.List = Backbone.View.extend({
 		var that = this;
 		
 		var todoId = $(event.target).data('id');
-		console.log('update todo #:'+todoId);
 
 		var todo = new Bucket.Models.Todo({id: todoId});
 		todo.fetch({
@@ -150,16 +154,12 @@ Bucket.Views.List = Backbone.View.extend({
 					todo.set({complete: true});
 					todo.save({}, {
 						success: function () {
-							console.log('hey from updating');
-							Bucket.todos.fetch({data: {user: Parse.User.current().attributes.username}});
+							Bucket.todos.fetch({data: {user: that.currentUser}});
 						}
 					});
 				} else {
 					// if status is already complete, user is notified that they cannot do this
-					$('.todo'+todoId).append("<h1 class='error' style='color:red'>cannot reinstate an item</h1>");
-					window.setTimeout(function () {
-						$('.error').remove();
-					}, 2000);
+					that.showError('.todo'+todoId, "Can't reinstate an item");
 				}
 			}
 		});
@@ -176,21 +176,67 @@ Bucket.Views.List = Backbone.View.extend({
 		Parse.User.logIn(username, password, {
 			success: function () {
 				console.log('Successfully Logged In');
-				Bucket.todos.fetch({data: {user: Parse.User.current().attributes.username}});
+				that.currentUser = Parse.User.current().attributes.username;
+
+				Bucket.todos.fetch({data: {user: that.currentUser}});
 
 				that.render();
 			},
-			error: function (error) {
-				console.log('Login Failed');
+			error: function (req, res) {
+				that.showError('#sign-in', res.message, 'login');
 			}
 		});
 	},	
 
+// User sign-up
+	signUp: function (event) {
+		event.preventDefault();
+		var that = this;
+
+		var username = $('#inputUsername').val();
+		var password = $('#inputPassword').val();
+		var passCheck = $('#reInputPassword').val();
+
+		if (password === passCheck) {
+			var user = new Parse.User();
+			user.set('username', username);
+			user.set('password', password);
+			user.signUp(null, {
+				success: function (user) {
+					that.currentUser = Parse.User.current().attributes.username;
+					Bucket.todos.fetch({data: {user: that.currentUser}});
+					// that.render();
+				},
+				error: function (user, error) {
+					that.showError('#sign-up', error.message, 'login');
+				}
+			})
+		} else {
+			this.showError('#sign-up', "Passwords don't match", 'login');
+		}
+	},
+
+// User sign-out
 	logOut: function (event) {
 		event.preventDefault();
 		var that = this;
 
 		Parse.User.logOut();
 		this.render();
+	},
+
+// Utility Functions
+	showError: function (selector, message, type) {
+		var element = "<h1 class='error' style='color:red;margin:5px 0'>"+message+"</h1>";
+		if (type === 'login') {
+			$(selector).before(element);
+		} else {
+			$(selector).append(element);
+		}
+
+		window.setTimeout(function () {
+			$('.error').remove();
+		}, 2000);
 	}
 });
+

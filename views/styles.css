@@ -11,6 +11,7 @@ nav, header, form, img {
 	outline: 0;
 	box-sizing: inherit;
 	font: inherit;
+	font-size: inherit;
 	text-decoration: inherit;
 	text-align: inherit;
 	color: inherit;
@@ -51,7 +52,6 @@ body {
 	margin: auto;
 	padding: 20px;
 	border-radius: 6px;
-	background-color: #98C4F0;
 }
 
 /*sign-in*/
@@ -78,6 +78,7 @@ body {
 
 .add-todo {
 	padding: 20px 25px;
+	padding-left: 0px;
 	background-color: #FFFFFF;
 	border-radius: 5px;
 }
@@ -89,11 +90,10 @@ body {
   font-size: 15px;
 }
 
-.add-btn {
+/*.add-btn {
   margin: auto;
   margin-top: 8px;
   padding: 17px;
-  background-color: #C0D6E2;
   border-radius: 6px;
   font-size: 26px;
   text-align: center;
@@ -104,7 +104,7 @@ body {
 	cursor: pointer;
 	color: #FFFFFF;
 	text-shadow: #000 2px 2px 2px;
-}
+}*/
 
 /*to-do list styles*/
 
@@ -166,7 +166,10 @@ body {
 	color: #000;
 }
 
-
+.error {
+	font-size: 15px;
+	margin: 0;
+}
 
 
 

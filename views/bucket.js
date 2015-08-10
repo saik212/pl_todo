@@ -25,12 +25,11 @@ window.Bucket = {
 		// Fetch and hold onto todos collection at the start so it can be worked with right away.
 		Bucket.todos = new Bucket.Collections.Todos();
 		Bucket.todos.fetch({data: {user: currentUser}});
-		// Bucket.todos.fetch();
 
 
 		// Only one view in this application so no need to swap main views
 		// Bucketlist view on another file due to size
-		Bucket.mainView = new Bucket.Views.List({el: "#content"});
+		Bucket.mainView = new Bucket.Views.Main({el: "#content"});
 	}
 
 };
