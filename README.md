@@ -1,7 +1,7 @@
 #Bucket List
 
 - Basic Todo application
-- Node.js on the backend, using Express.js, as a RESTful API
+- Node.js/Express and Parse on the backend
 - Backbone.js on the front-end
 
 

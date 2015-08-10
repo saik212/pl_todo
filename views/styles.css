@@ -90,22 +90,6 @@ body {
   font-size: 15px;
 }
 
-/*.add-btn {
-  margin: auto;
-  margin-top: 8px;
-  padding: 17px;
-  border-radius: 6px;
-  font-size: 26px;
-  text-align: center;
-  width: 120px;
-}
-
-.add-btn:hover {
-	cursor: pointer;
-	color: #FFFFFF;
-	text-shadow: #000 2px 2px 2px;
-}*/
-
 /*to-do list styles*/
 
 .todos-header {
