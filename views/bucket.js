@@ -7,6 +7,9 @@ window.Bucket = {
 	Views: {},
 	
 	initialize: function() {
+		if (Parse.User.current()) {
+			var currentUser = Parse.User.current().attributes.username;
+		}
 		// set Models constructor
 		Bucket.Models.Todo = Backbone.Model.extend({
 			urlRoot: 'api/todos'
@@ -14,13 +17,15 @@ window.Bucket = {
 
 		// set Collections constructor
 		Bucket.Collections.Todos = Backbone.Collection.extend({
-			url:'api/todos'
+			url:'api/todos',
+			model: Bucket.Models.Todo
 		});
 
 
 		// Fetch and hold onto todos collection at the start so it can be worked with right away.
 		Bucket.todos = new Bucket.Collections.Todos();
-		Bucket.todos.fetch();
+		Bucket.todos.fetch({data: {user: currentUser}});
+		// Bucket.todos.fetch();
 
 
 		// Only one view in this application so no need to swap main views

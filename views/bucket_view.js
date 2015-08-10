@@ -9,7 +9,8 @@ Bucket.Views.List = Backbone.View.extend({
 		this.list = $('.todos');
 		this.form = $('.add-todo-wrapper');
 		this.listenTo(Bucket.todos, 'sync add remove', this.render);
-		this.listenTo(Parse.User.current(), 'change', this.stuff);
+		// this.listenTo(Parse.User.current(), 'change', this.stuff);
+		// this.render();
 	},
 
 	events: {
@@ -98,7 +99,7 @@ Bucket.Views.List = Backbone.View.extend({
 		event.preventDefault();
 
 		var text = $('.new-todo').val();
-		var todo = new Bucket.Models.Todo({desc: text});
+		var todo = new Bucket.Models.Todo({desc: text, createdBy: Parse.User.current().attributes.username});
 		todo.save({}, {
 			success: function () {
 				Bucket.todos.add(todo);
@@ -174,6 +175,8 @@ Bucket.Views.List = Backbone.View.extend({
 		Parse.User.logIn(username, password, {
 			success: function () {
 				console.log('Successfully Logged In');
+				Bucket.todos.fetch({data: {user: Parse.User.current().attributes.username}});
+
 				that.render();
 			},
 			error: function (error) {

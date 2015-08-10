@@ -7,7 +7,8 @@
 var express = require('express');
 var router = express.Router();
 var Parse = require('parse').Parse;
-Parse.User.enableUnsafeCurrentUser();
+var Todo = Parse.Object.extend('Todo');
+
 
 
 // Pseudo DB setup
@@ -38,6 +39,18 @@ var searchList = function (id) {
 	return todoItemIdx;
 }
 
+
+// Parsing Todo List from Parse query
+var parseTodos = function (results) {
+	var parsedResults = [];
+	for (var i=0; i<results.length; i++) {
+		results[i].attributes.id = results[i].id;
+		parsedResults.push(results[i].attributes);
+	}
+
+	return parsedResults;
+}
+
 // set up routes
 
 
@@ -51,15 +64,49 @@ router.get('/', function (req, res) {
 router.route('/api/todos')
 	// Sending up collection of to-dos
 	.get(function (req, res) {
-		res.json(todoList);
+		if (req.query.user) {
+
+		var query = new Parse.Query(Todo);
+		query.equalTo('createdBy', req.query.user);
+		query.find({
+			success: function (results) {
+				// res.json(results);
+				res.json(parseTodos(results));
+				console.log(parseTodos(results));
+				// console.log(todoList);
+			},
+			error: function (error) {
+				console.log(error);
+			}
+		});
+
+
+			
+		} else {
+			res.json([]);
+		}
+				// res.json(todoList);
+		// console.log(req.query.user);
 	})
 
 	// Creating a new to-do
 	.post(function (req, res) {
-		totalItems+=1;
-		var newItem = {id: totalItems, desc: req.body.desc, complete: false};
-		todoList.push(newItem);
-		res.json(newItem);
+		// totalItems+=1;
+		// var newItem = {id: totalItems, desc: req.body.desc, complete: false};
+		// todoList.push(newItem);
+		// res.json(newItem);
+		var todo = new Todo();
+		todo.set('createdBy', req.body.createdBy);
+		todo.set('desc', req.body.desc);
+		todo.set('complete', false);
+		todo.save(null, {
+			success: function () {
+				res.json(todo);
+			},
+			error: function (error) {
+				res.json(error);
+			}
+		});
 	});
 
 router.route('/api/todos/:id')
