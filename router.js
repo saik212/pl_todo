@@ -72,6 +72,7 @@ router.route('/api/todos')
 			success: function (results) {
 				// res.json(results);
 				res.json(parseTodos(results));
+				console.log(75);
 				console.log(parseTodos(results));
 				// console.log(todoList);
 			},
@@ -109,32 +110,82 @@ router.route('/api/todos')
 		});
 	});
 
+
+
 router.route('/api/todos/:id')
 	// Sending up a single to-do
 	.get(function (req, res) {
-		var reqId = parseInt(req.params.id);
+		var query = new Parse.Query(Todo);
+		query.equalTo('objectId', req.params.id);
+		query.find({
+			success: function (results) {
+				console.log(121);
+				console.log(results);
+				res.json(results[0]);
+			},
+			error: function (results, error) {
+				console.log(126);
+				console.log(error);
+			}
+		});
+		// res.json('hello. the id was: ' + req.params.id);
+		// var reqId = parseInt(req.params.id);
 			
-		res.json(todoList[searchList(reqId)]);
+		// res.json(todoList[searchList(reqId)]);
 	})
 
 	// Updating a single to-do
 	.put(function (req, res) {
-		var reqId = parseInt(req.params.id);
-		var item = todoList[searchList(reqId)];
-		item.desc = req.body.desc;
-		item.complete = req.body.complete;
-		res.json(item);
+		var query = new Parse.Query(Todo);
+		query.equalTo('objectId', req.params.id);
+		query.first({
+			success: function (object) {
+				object.set('complete', true);
+				object.save(null, {
+					success: function () {
+						res.json(object);
+					},
+					error: function () {
+						res.json('could not update');
+					}
+				})
+				// var todo = results[0];
+				// res.json(parseTodos(results[0]));
+				// console.log(results);
+				// res.json(parseTodos(results)[0]);
+			},
+			error: function (results, error) {
+				console.log(147);
+				console.log(error);
+			}
+		});
+		// var reqId = parseInt(req.params.id);
+		// var item = todoList[searchList(reqId)];
+		// item.desc = req.body.desc;
+		// item.complete = req.body.complete;
+		// res.json(item);
 	})
 
 	// Deleting a single to-do
 	.delete(function (req, res){
-		var reqId = parseInt(req.params.id);
-		var delIdx = searchList(reqId);
-		var delItem = todoList[delIdx];
-
-		todoList.splice(delIdx, 1);
-
-		res.json(delItem);
+		var query = new Parse.Query(Todo);
+		query.equalTo('objectId', req.params.id);
+		query.first({
+			success: function (object) {
+				object.destroy({
+					success: function () {
+						res.json(object);
+					},
+					error: function () {
+						res.json('could not destroy');
+					}
+				})
+			},
+			error: function (results, error) {
+				console.log(147);
+				console.log(error);
+			}
+		});
 	});
 
 

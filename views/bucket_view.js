@@ -150,7 +150,8 @@ Bucket.Views.List = Backbone.View.extend({
 					todo.set({complete: true});
 					todo.save({}, {
 						success: function () {
-							Bucket.todos.fetch();
+							console.log('hey from updating');
+							Bucket.todos.fetch({data: {user: Parse.User.current().attributes.username}});
 						}
 					});
 				} else {
