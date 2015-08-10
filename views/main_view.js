@@ -102,6 +102,7 @@ Bucket.Views.Main = Backbone.View.extend({
 // Adding a to-do: trigger event, grab text from input field, set description as attribute for new model, save model
 	addTodo: function (event) {
 		event.preventDefault();
+		var that = this;
 
 		var text = $('.new-todo').val();
 		var todo = new Bucket.Models.Todo({desc: text, createdBy: this.currentUser});
@@ -109,26 +110,39 @@ Bucket.Views.Main = Backbone.View.extend({
 			success: function (req, res) {
 				todo.set({id: res.objectId});
 				Bucket.todos.add(todo);
+				that.removeSpinner('.add-todo');
 			},
 			error: function (req, res) {
-				console.log('Errored out');
-				console.log(res);
+				that.showError('.add-todo', res.message);
+				that.removeSpinner('.add-todo');
 			}
-		})
+		});
+
+		this.addSpinner('.add-todo', 'Adding todo...');
 	},
 
 
 // Deleting a to-do: trigger event, grab id from event.target, find model by id, destroy model and remove it from the collection
 	deleteTodo: function (event) {
 		event.preventDefault();
+		var that = this;
 		
 		var todoId = $(event.target).data('id');
 
 		var todo = new Bucket.Models.Todo({id: todoId});
 		todo.fetch({
 			success: function () {
-				todo.destroy();
-				Bucket.todos.remove(todo);
+				todo.destroy({
+					success: function (req, res) {
+						Bucket.todos.remove(todo);
+						that.removeSpinner('.todo'+todoId);
+					},
+					error: function (req, res) {
+						that.removeSpinner('.todo'+todoId);
+						that.showError('.todo'+todoId, res.message);
+					}
+				});
+				that.addSpinner('.todo'+todoId, 'Deleting...');
 			}
 		});
 
@@ -153,10 +167,16 @@ Bucket.Views.Main = Backbone.View.extend({
 				if (todo.get('complete') === false) {
 					todo.set({complete: true});
 					todo.save({}, {
-						success: function () {
+						success: function (todo) {
 							Bucket.todos.fetch({data: {user: that.currentUser}});
+							that.removeSpinner('.todo'+todoId);
+						},
+						error: function (todo, error) {
+							that.removeSpinner('.todo'+todoId);
+							that.showError('.todo'+todoId, error.message);
 						}
 					});
+					that.addSpinner('.todo'+todoId, 'Updating...')
 				} else {
 					// if status is already complete, user is notified that they cannot do this
 					that.showError('.todo'+todoId, "Can't reinstate an item");
@@ -175,17 +195,18 @@ Bucket.Views.Main = Backbone.View.extend({
 
 		Parse.User.logIn(username, password, {
 			success: function () {
-				console.log('Successfully Logged In');
 				that.currentUser = Parse.User.current().attributes.username;
-
+				that.removeSpinner('#sign-in');
 				Bucket.todos.fetch({data: {user: that.currentUser}});
 
-				that.render();
 			},
 			error: function (req, res) {
 				that.showError('#sign-in', res.message, 'login');
+				that.removeSpinner('#sign-in');
 			}
 		});
+
+		this.addSpinner('#sign-in', 'Loading account...');
 	},	
 
 // User sign-up
@@ -205,12 +226,16 @@ Bucket.Views.Main = Backbone.View.extend({
 				success: function (user) {
 					that.currentUser = Parse.User.current().attributes.username;
 					Bucket.todos.fetch({data: {user: that.currentUser}});
+					that.removeSpinner('#sign-up');
 					// that.render();
 				},
 				error: function (user, error) {
 					that.showError('#sign-up', error.message, 'login');
+					that.removeSpinner('#sign-up');
 				}
-			})
+			});
+			this.addSpinner('#sign-up', 'Creating account...');
+
 		} else {
 			this.showError('#sign-up', "Passwords don't match", 'login');
 		}
@@ -237,6 +262,18 @@ Bucket.Views.Main = Backbone.View.extend({
 		window.setTimeout(function () {
 			$('.error').remove();
 		}, 2000);
+	},
+
+	addSpinner: function (container, message) {
+		$(container).append("<div class='loading-notice'>"+message+"</div>");
+		$(container).append("<i class='fa fa-cog fa-spin'></i>");
+	},
+
+	removeSpinner: function (container) {
+		$('.fa-spin').remove();
+		$('.loading-notice').remove();
 	}
+
+
 });
 
