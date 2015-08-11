@@ -1,3 +1,4 @@
+// These are modules
 var express = require('express');
 var bodyParser = require('body-parser');
 var path = require('path');
@@ -5,6 +6,7 @@ var app = express();
 var Parse = require('parse').Parse;
 Parse.User.enableUnsafeCurrentUser();
 
+// If I had more time I would use Figaro module to hide my keys, and then run it on a Deployment service (Heroku, AWS, Docker, Digital Ocean)
 Parse.initialize('U6by9eTVp9ZiAgsGruUpnhL8RIJXxc4ka9Y3niP9',
 	'rHVii2SEnus7m0dHHthdRSxbsnzG0nOkkGVgjuTu');
 

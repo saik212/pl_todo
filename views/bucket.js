@@ -34,6 +34,11 @@ window.Bucket = {
 
 };
 
+// Using the keys here is just for convenience. In a real setting, I would use third-party modules
+// like Figaro to hide the keys and only use them in a production environment.
+// Parse is used on the client side for ease of use with the User.current() object. All communication
+// with Parse would realistically be dealt with on the server, and I would create a CurrentUser model in Backbone
+// which would communicate to the server
 Parse.initialize("U6by9eTVp9ZiAgsGruUpnhL8RIJXxc4ka9Y3niP9", "rHVii2SEnus7m0dHHthdRSxbsnzG0nOkkGVgjuTu");
 
 $(document).ready(function () {

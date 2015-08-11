@@ -43,9 +43,12 @@ router.route('/api/todos')
 			query.equalTo('createdBy', req.query.user);
 			query.find({
 				success: function (results) {
+					res.status(200);
 					res.json(parseTodos(results));
 				},
 				error: function (error) {
+					res.status(404)
+					res.json(error.message);
 					console.log(error);
 				}
 			});
@@ -62,10 +65,12 @@ router.route('/api/todos')
 		todo.set('complete', false);
 		todo.save(null, {
 			success: function () {
+				res.status(200);
 				res.json(todo);
 			},
 			error: function (error) {
-				res.json(error);
+				res.status(400);
+				res.json(error.message);
 			}
 		});
 	});
@@ -79,11 +84,12 @@ router.route('/api/todos/:id')
 		query.equalTo('objectId', req.params.id);
 		query.find({
 			success: function (results) {
+				res.status(200);
 				res.json(results[0]);
 			},
 			error: function (results, error) {
-				console.log(126);
-				console.log(error);
+				res.status(404);
+				res.json(error.message);
 			}
 		});
 	})
@@ -97,15 +103,18 @@ router.route('/api/todos/:id')
 				object.set('complete', true);
 				object.save(null, {
 					success: function () {
+						res.status(200);
 						res.json(object);
 					},
-					error: function () {
-						res.json('could not update');
+					error: function (error) {
+						res.status(400);
+						res.json(error.message);
 					}
 				})
 			},
 			error: function (results, error) {
-				console.log(147);
+				res.status(404);
+				res.json(error.message);
 				console.log(error);
 			}
 		});
@@ -119,15 +128,19 @@ router.route('/api/todos/:id')
 			success: function (object) {
 				object.destroy({
 					success: function () {
+						res.status(200);
 						res.json(object);
 					},
-					error: function () {
+					error: function (error) {
+						res.status(400);
+						res.json(error.message);
 						res.json('could not destroy');
 					}
 				})
 			},
 			error: function (results, error) {
-				console.log(147);
+				res.status(404);
+				res.json(error.message);
 				console.log(error);
 			}
 		});

@@ -32,6 +32,9 @@ Bucket.Views.Main = Backbone.View.extend({
 	},
 
 	renderSignIn: function () {
+		// Due to time constraints, I saved the html as a string and put it in the main container.
+		// It should be noticed that under normal circumstances, this would never be done. Without
+		// html escaping, there is a risk of cross-platform injection.
 		var formTemplate = "<form class='form-signin'>"+
         "<label for='inputUsername' class='sr-only'>Username</label>"+
         "<input id='inputUsername' class='form-control' placeholder='Username'>"+
@@ -75,7 +78,8 @@ Bucket.Views.Main = Backbone.View.extend({
 
 
 // When rendering the to-dos, I created a template for the list-items to be added to the list of to-dos.
-// It would be cleaner to have the HTML inside a template file. It is here out of convenience.
+// It would be cleaner and safer to use a templating engine like EJS to account for DRY code as well as
+// HTML escaping. Having the HTML here is purely for convenience in this demonstration.
 // This function also applies the appropriate classes and attributes to a to-do based on completion status.
 	renderTodos: function () {
 		var list = $('.todos');
@@ -110,15 +114,15 @@ Bucket.Views.Main = Backbone.View.extend({
 			success: function (req, res) {
 				todo.set({id: res.objectId});
 				Bucket.todos.add(todo);
-				that.removeSpinner('.add-todo');
+				that.removeSpinner();
 			},
 			error: function (req, res) {
 				that.showError('.add-todo', res.message);
-				that.removeSpinner('.add-todo');
+				that.removeSpinner();
 			}
 		});
 
-		this.addSpinner('.add-todo', 'Adding todo...');
+		this.addSpinner('.add-todo');
 	},
 
 
@@ -135,14 +139,14 @@ Bucket.Views.Main = Backbone.View.extend({
 				todo.destroy({
 					success: function (req, res) {
 						Bucket.todos.remove(todo);
-						that.removeSpinner('.todo'+todoId);
+						that.removeSpinner();
 					},
 					error: function (req, res) {
-						that.removeSpinner('.todo'+todoId);
+						that.removeSpinner();
 						that.showError('.todo'+todoId, res.message);
 					}
 				});
-				that.addSpinner('.todo'+todoId, 'Deleting...');
+				that.addSpinner('.todo'+todoId);
 			}
 		});
 
@@ -155,6 +159,8 @@ Bucket.Views.Main = Backbone.View.extend({
 // Allowing the user to try to change status to incomplete is here to show the 
 // update functionality works properly. If I did not want the user to update
 // a to-do's status, I would hide the functionality completely.
+// As an aside, the validation of updated todos is best done server-side. It is done here due to time constraints
+
 	updateTodo: function (event) {
 		event.preventDefault();
 		var that = this;
@@ -169,14 +175,14 @@ Bucket.Views.Main = Backbone.View.extend({
 					todo.save({}, {
 						success: function (todo) {
 							Bucket.todos.fetch({data: {user: that.currentUser}});
-							that.removeSpinner('.todo'+todoId);
+							that.removeSpinner();
 						},
 						error: function (todo, error) {
-							that.removeSpinner('.todo'+todoId);
+							that.removeSpinner();
 							that.showError('.todo'+todoId, error.message);
 						}
 					});
-					that.addSpinner('.todo'+todoId, 'Updating...')
+					that.addSpinner('.todo'+todoId);
 				} else {
 					// if status is already complete, user is notified that they cannot do this
 					that.showError('.todo'+todoId, "Can't reinstate an item");
@@ -202,11 +208,11 @@ Bucket.Views.Main = Backbone.View.extend({
 			},
 			error: function (req, res) {
 				that.showError('#sign-in', res.message, 'login');
-				that.removeSpinner('#sign-in');
+				that.removeSpinner();
 			}
 		});
 
-		this.addSpinner('#sign-in', 'Loading account...');
+		this.addSpinner('#sign-in');
 	},	
 
 // User sign-up
@@ -222,19 +228,19 @@ Bucket.Views.Main = Backbone.View.extend({
 			var user = new Parse.User();
 			user.set('username', username);
 			user.set('password', password);
+			this.addSpinner('#sign-up');
 			user.signUp(null, {
 				success: function (user) {
 					that.currentUser = Parse.User.current().attributes.username;
 					Bucket.todos.fetch({data: {user: that.currentUser}});
-					that.removeSpinner('#sign-up');
+					that.removeSpinner();
 					// that.render();
 				},
 				error: function (user, error) {
 					that.showError('#sign-up', error.message, 'login');
-					that.removeSpinner('#sign-up');
+					that.removeSpinner();
 				}
 			});
-			this.addSpinner('#sign-up', 'Creating account...');
 
 		} else {
 			this.showError('#sign-up', "Passwords don't match", 'login');
@@ -264,14 +270,13 @@ Bucket.Views.Main = Backbone.View.extend({
 		}, 2000);
 	},
 
-	addSpinner: function (container, message) {
-		$(container).append("<div class='loading-notice'>"+message+"</div>");
+	addSpinner: function (container) {
 		$(container).append("<i class='fa fa-cog fa-spin'></i>");
 	},
 
-	removeSpinner: function (container) {
+	removeSpinner: function () {
 		$('.fa-spin').remove();
-		$('.loading-notice').remove();
+
 	}
 
 
