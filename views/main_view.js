@@ -34,7 +34,7 @@ Bucket.Views.Main = Backbone.View.extend({
 	renderSignIn: function () {
 		// Due to time constraints, I saved the html as a string and put it in the main container.
 		// It should be noticed that under normal circumstances, this would never be done. Without
-		// html escaping, there is a risk of cross-platform injection.
+		// html escaping, there is a risk of XSS script injections.
 		var formTemplate = "<form class='form-signin'>"+
         "<label for='inputUsername' class='sr-only'>Username</label>"+
         "<input id='inputUsername' class='form-control' placeholder='Username'>"+
