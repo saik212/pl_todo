@@ -28,5 +28,5 @@ app.use(require('./router'));
 var port = process.env.PORT || 1337;
 
 app.listen(port, function () {
-	console.log('Listening on port elite');
+	console.log('Listening on Port '+port);
 })

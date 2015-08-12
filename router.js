@@ -7,7 +7,7 @@ var express = require('express');
 var router = express.Router();
 var Parse = require('parse').Parse;
 var Todo = Parse.Object.extend('Todo');
-
+Parse.User.enableUnsafeCurrentUser();
 
 
 
@@ -33,14 +33,84 @@ router.get('/', function (req, res) {
 });
 
 
+// Setting Users
+	router.route('/api/users')
+
+		.post(function (req, res) {
+			var user = new Parse.User();
+			var username = req.body.username;
+			var pass = req.body.pass;
+			var passCheck = req.body.passCheck;
+
+			if (pass != passCheck) {
+				res.status(400);
+				res.json('Passwords do not match');
+				return;
+			}
+
+			user.set('username', username);
+			user.set('password', pass);
+
+			user.signUp(null, {
+				success: function (user) {
+					res.status(200);
+					res.json(user);
+				},
+				error: function (user, error) {
+					res.status(400);
+					res.json(error.message);
+					console.log(error);
+				}
+			});
+
+		});
+
+	router.route('/api/session')
+		.get(function (req, res) {
+			// res.status(200);
+			if (Parse.User.current()) {
+				res.status(200);
+				res.json(Parse.User.current().attributes);
+			} else {
+				res.status(200);
+				res.json(null);
+			}
+		})
+
+		.post(function (req, res) {
+			Parse.User.logIn(req.body.username, req.body.pass, {
+				success: function (user) {
+					res.status(200);
+					res.json(user);
+				},
+				error: function (user, error) {
+					res.status(400);
+					res.json(error.message);
+				}
+			});
+		})
+
+		.delete(function (req, res) {
+			Parse.User.logOut();
+			if (Parse.User.current()) {
+				res.status(500);
+				res.json('Could not logout');
+			} else {
+				res.status(200);
+				res.json('Successfully logged out');
+			}
+		});
+
+
+
 // Basic CRUD for todos
 
 router.route('/api/todos')
 	// Sending up collection of to-dos
 	.get(function (req, res) {
-		if (req.query.user) {
+		if (Parse.User.current()) {
 			var query = new Parse.Query(Todo);
-			query.equalTo('createdBy', req.query.user);
+			query.equalTo('createdBy', Parse.User.current().attributes.username);
 			query.find({
 				success: function (results) {
 					res.status(200);
@@ -53,7 +123,8 @@ router.route('/api/todos')
 				}
 			});
 		} else {
-			res.json([]);
+			res.status(200);
+			res.json('No user present');
 		}
 	})
 

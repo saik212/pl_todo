@@ -6,9 +6,11 @@
 
 Bucket.Views.Main = Backbone.View.extend({
 	initialize: function (options) {
-		if (Parse.User.current()) {
-			this.currentUser = Parse.User.current().attributes.username;
+		this.currentUser = options.currentUser || null;
+		if (!this.currentUser) {
+			this.render();
 		}
+
 		this.listenTo(Bucket.todos, 'sync add remove', this.render);
 	},
 
@@ -23,7 +25,7 @@ Bucket.Views.Main = Backbone.View.extend({
 
 	render: function () {
 		$(this.el).empty();
-		if (Parse.User.current()) {
+		if (this.currentUser) {
 			this.renderContent();
 		} else {
 			console.log('no current user');
@@ -53,7 +55,7 @@ Bucket.Views.Main = Backbone.View.extend({
 
 	renderContent: function () {
 		var contentTemplate = "<div class='list-container group'><button type='button' class="+
-			"'logout btn btn-danger btn-lg'>Logout</button><h1>"+this.currentUser+"'s List:</h1><div class='add-todo-wrapper'>"+
+			"'logout btn btn-danger btn-lg'>Logout</button><h1>"+this.currentUser.username+"'s List:</h1><div class='add-todo-wrapper'>"+
 			"</div><ul class='todos'></ul></div>";
 
 		$(this.el).html(contentTemplate);
@@ -109,16 +111,17 @@ Bucket.Views.Main = Backbone.View.extend({
 		var that = this;
 
 		var text = $('.new-todo').val();
-		var todo = new Bucket.Models.Todo({desc: text, createdBy: this.currentUser});
+		var todo = new Bucket.Models.Todo({desc: text, createdBy: this.currentUser.username});
 		todo.save({}, {
 			success: function (req, res) {
 				todo.set({id: res.objectId});
 				Bucket.todos.add(todo);
-				that.removeSpinner();
 			},
 			error: function (req, res) {
 				that.showError('.add-todo', res.message);
-				that.removeSpinner();
+				// that.removeSpinner();
+				// $('.fa-spin').remove();
+				that.render();
 			}
 		});
 
@@ -132,6 +135,7 @@ Bucket.Views.Main = Backbone.View.extend({
 		var that = this;
 		
 		var todoId = $(event.target).data('id');
+		that.addSpinner('.todo'+todoId);
 
 		var todo = new Bucket.Models.Todo({id: todoId});
 		todo.fetch({
@@ -139,14 +143,11 @@ Bucket.Views.Main = Backbone.View.extend({
 				todo.destroy({
 					success: function (req, res) {
 						Bucket.todos.remove(todo);
-						that.removeSpinner();
 					},
 					error: function (req, res) {
-						that.removeSpinner();
 						that.showError('.todo'+todoId, res.message);
 					}
 				});
-				that.addSpinner('.todo'+todoId);
 			}
 		});
 
@@ -168,21 +169,24 @@ Bucket.Views.Main = Backbone.View.extend({
 		var todoId = $(event.target).data('id');
 
 		var todo = new Bucket.Models.Todo({id: todoId});
+		that.addSpinner('.todo'+todoId);
 		todo.fetch({
 			success: function () {
 				if (todo.get('complete') === false) {
 					todo.set({complete: true});
 					todo.save({}, {
 						success: function (todo) {
-							Bucket.todos.fetch({data: {user: that.currentUser}});
-							that.removeSpinner();
+							Bucket.todos.fetch({
+								success: function () {
+									that.removeSpinner();
+								}
+							});
 						},
 						error: function (todo, error) {
 							that.removeSpinner();
 							that.showError('.todo'+todoId, error.message);
 						}
 					});
-					that.addSpinner('.todo'+todoId);
 				} else {
 					// if status is already complete, user is notified that they cannot do this
 					that.showError('.todo'+todoId, "Can't reinstate an item");
@@ -199,15 +203,18 @@ Bucket.Views.Main = Backbone.View.extend({
 		var username = $('#inputUsername').val();
 		var password = $('#inputPassword').val();
 
-		Parse.User.logIn(username, password, {
-			success: function () {
-				that.currentUser = Parse.User.current().attributes.username;
-				that.removeSpinner('#sign-in');
-				Bucket.todos.fetch({data: {user: that.currentUser}});
-
+		var user = new Bucket.Models.CurrentUser({username: username, pass: password});
+		user.save({}, {
+			success: function (res, req) {
+				that.currentUser = res.attributes;
+				Bucket.todos.fetch({
+					success: function () {
+						that.removeSpinner();
+					}
+				});
 			},
-			error: function (req, res) {
-				that.showError('#sign-in', res.message, 'login');
+			error: function (res, req) {
+				that.showError('#sign-in', 'Invalid Credentials', 'login');
 				that.removeSpinner();
 			}
 		});
@@ -224,27 +231,29 @@ Bucket.Views.Main = Backbone.View.extend({
 		var password = $('#inputPassword').val();
 		var passCheck = $('#reInputPassword').val();
 
-		if (password === passCheck) {
-			var user = new Parse.User();
-			user.set('username', username);
-			user.set('password', password);
-			this.addSpinner('#sign-up');
-			user.signUp(null, {
-				success: function (user) {
-					that.currentUser = Parse.User.current().attributes.username;
-					Bucket.todos.fetch({data: {user: that.currentUser}});
-					that.removeSpinner();
-					// that.render();
-				},
-				error: function (user, error) {
-					that.showError('#sign-up', error.message, 'login');
-					that.removeSpinner();
-				}
-			});
+		var user = new Bucket.Models.User({
+			username: username
+		});
 
-		} else {
-			this.showError('#sign-up', "Passwords don't match", 'login');
-		}
+
+		this.addSpinner('#sign-up');
+		user.save({pass: password, passCheck: passCheck}, {
+			success: function (req, res) {
+				that.currentUser = res;
+				console.log(that.currentUser);
+				Bucket.todos.fetch({
+					success: function () {
+						that.render();
+					}
+				});
+				that.removeSpinner();
+			},
+			error: function (req, res) {
+				that.showError('#sign-up', 'Passwords do not match', 'login');
+				that.removeSpinner();
+			}
+		})
+
 	},
 
 // User sign-out
@@ -252,12 +261,26 @@ Bucket.Views.Main = Backbone.View.extend({
 		event.preventDefault();
 		var that = this;
 
-		Parse.User.logOut();
-		this.render();
+		$.ajax({
+			url: 'api/session',
+			type: 'DELETE',
+			dataType: 'json',
+			success: function (req, res) {
+				that.currentUser = null;
+				that.render();
+			},
+			error: function (req, res) {
+				debugger
+			}
+		})
+
+		// this.currentUser = null;
+		// this.render();
 	},
 
 // Utility Functions
 	showError: function (selector, message, type) {
+		$('.fa-spin').remove();
 		var element = "<h1 class='error' style='color:red;margin:5px 0'>"+message+"</h1>";
 		if (type === 'login') {
 			$(selector).before(element);

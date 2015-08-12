@@ -7,15 +7,21 @@ window.Bucket = {
 	Views: {},
 	
 	initialize: function() {
-		if (Parse.User.current()) {
-			var currentUser = Parse.User.current().attributes.username;
-		}
-		// set Models constructor
+
+		// set Model constructora
 		Bucket.Models.Todo = Backbone.Model.extend({
 			urlRoot: 'api/todos'
 		});
 
-		// set Collections constructor
+		Bucket.Models.User = Backbone.Model.extend({
+			urlRoot: 'api/users'
+		});
+
+		Bucket.Models.CurrentUser = Backbone.Model.extend({
+			urlRoot: 'api/session'
+		});
+
+		// set Collection constructors
 		Bucket.Collections.Todos = Backbone.Collection.extend({
 			url:'api/todos',
 			model: Bucket.Models.Todo
@@ -24,12 +30,23 @@ window.Bucket = {
 
 		// Fetch and hold onto todos collection at the start so it can be worked with right away.
 		Bucket.todos = new Bucket.Collections.Todos();
-		Bucket.todos.fetch({data: {user: currentUser}});
+		Bucket.todos.fetch();
 
+
+		Bucket.currentUser = new Bucket.Models.CurrentUser();
+		Bucket.currentUser.fetch({
+			success: function (req, res) {
+				console.log('hello world from currentUser fetch! Success');
+				Bucket.mainView = new Bucket.Views.Main({el: "#content", currentUser: res});		
+			},
+			error: function (req, res) {
+				console.log('hello world from currentUser fetch! Error!');
+				Bucket.mainView = new Bucket.Views.Main({el: "#content"});		
+			}
+		});
 
 		// Only one view in this application so no need to swap main views
 		// Bucketlist view on another file due to size
-		Bucket.mainView = new Bucket.Views.Main({el: "#content"});
 	}
 
 };
@@ -39,7 +56,6 @@ window.Bucket = {
 // Parse is used on the client side for ease of use with the User.current() object. All communication
 // with Parse would realistically be dealt with on the server, and I would create a CurrentUser model in Backbone
 // which would communicate to the server
-Parse.initialize("U6by9eTVp9ZiAgsGruUpnhL8RIJXxc4ka9Y3niP9", "rHVii2SEnus7m0dHHthdRSxbsnzG0nOkkGVgjuTu");
 
 $(document).ready(function () {
 	Bucket.initialize();
