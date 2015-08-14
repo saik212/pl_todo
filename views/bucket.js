@@ -37,7 +37,6 @@ window.Bucket = {
 		});
 
 
-		// Fetch and hold onto todos collection at the start so it can be worked with right away.
 		Bucket.todos = new Bucket.Collections.Todos();
 		Bucket.lists = new Bucket.Collections.Lists();
 
