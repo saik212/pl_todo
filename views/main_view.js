@@ -5,22 +5,69 @@
 
 
 Bucket.Views.Main = Backbone.View.extend({
+
 	initialize: function (options) {
+		this.currentList = Bucket.lists.toJSON()[0] || {};
+		// debugger
 		this.currentUser = options.currentUser || null;
 		if (!this.currentUser) {
 			this.render();
 		}
 
 		this.listenTo(Bucket.todos, 'sync add remove', this.render);
+		this.listenTo(Bucket.lists, 'sync add remove', this.render);
+
 	},
 
+
 	events: {
-		"click .add-btn": "addTodo",
-		"click .dlt": "deleteTodo",
-		"click .updt": "updateTodo",
+		"click .list-drop": "changeList",
+		"click .create-list": "addList",
+		"click .delete-list": "deleteList",
+		"click .create-todo": "addTodo",
+		"click #dlt-todo": "deleteTodo",
+		"click .updt-todo": "updateTodo",
 		"click #sign-in": "signIn",
 		"click #sign-up": "signUp",
 		"click .logout": "logOut"
+	},
+
+	changeList: function (event) {
+		event.preventDefault();
+		var that = this;
+
+		var listId = $(event.target).data('id');
+		var listTitle = $(event.target).text();
+		// var list = Bucket.todos.get(listId);
+		this.currentList.createdBy = Bucket.currentUser.get('username');
+		this.currentList.title = listTitle;
+		this.currentList.id = listId;
+		Bucket.todos.fetch({data: {listId: listId}});
+	},
+
+	addList: function (event) {
+		event.preventDefault();
+		var that = this;
+
+		var listTitle = $('.new-list').val();
+
+		var list = new Bucket.Models.List({title: listTitle});
+		list.save({}, {
+			success: function (req, res) {
+				Bucket.lists.add(list);
+				// debugger
+				that.currentList.createdBy = Bucket.currentUser.get('username');
+				that.currentList.title = list.get('title');
+				that.currentList.id = list.get('objectId');
+				Bucket.todos.fetch({data: {listId: list.get('objectId')}});
+			}
+		});
+	},
+
+	deleteList: function (event) {
+		event.preventDefault();
+		var that = this;
+
 	},
 
 	render: function () {
@@ -44,7 +91,10 @@ Bucket.Views.Main = Backbone.View.extend({
         "<input type='password' id='inputPassword' class='form-control' placeholder='Password'>"+
         "<button class='btn btn-lg btn-primary btn-block' id='sign-in' type='submit'>Sign in</button>"+
         "<h1 class='form-signin-heading'>Or</h1>"+
+        "<input id='inputUsernameSU' class='form-control' placeholder='Username'>"+
         "<label for='inputPassword' class='sr-only'>Password</label>"+
+        "<input type='password' id='inputPasswordSU' class='form-control' placeholder='Password'>"+
+        "<label for='reInputPassword' class='sr-only'>Re-Enter Password</label>"+
         "<input type='password' id='reInputPassword' class='form-control' placeholder='Re-Enter Password'>"+
         "<button class='btn btn-lg btn-primary btn-block' id='sign-up' type='submit'>Sign Up</button>"+
 	      "</form>";
@@ -54,28 +104,34 @@ Bucket.Views.Main = Backbone.View.extend({
 	},
 
 	renderContent: function () {
-		var contentTemplate = "<div class='list-container group'><button type='button' class="+
-			"'logout btn btn-danger btn-lg'>Logout</button><h1>"+this.currentUser.username+"'s List:</h1><div class='add-todo-wrapper'>"+
-			"</div><ul class='todos'></ul></div>";
+		// var contentTemplate = "<div class='list-container group'><button type='button' class="+
+		// 	"'logout btn btn-danger btn-lg'>Logout</button><h1>"+this.currentUser.username+"'s List:</h1><div class='add-todo-wrapper'>"+
+		// 	"</div><ul class='todos'></ul></div>";
 
-		$(this.el).html(contentTemplate);
-		this.renderTodoForm();
-		this.renderTodos();
-
-	},
-
-	renderTodoForm: function () {
-		var form = $('.add-todo-wrapper');
-
-		var formTemplate = "<h1 class='new-header'>New item:</h1>"+
-											 "<div class='add-todo group'>"+
-											 "<textarea class='new-todo'></textarea>"+
-											 "<button type='button' class='btn btn-success btn-lg add-btn'>Add Item</button>"+
-											 "</div>";
-
-		form.append(formTemplate);
+		// $(this.el).html(contentTemplate);
+		// this.renderTodoForm();
+		// this.renderTodos();
+		this.renderLogOut();
+		this.renderLists(Bucket.lists);
+		this.renderListForm();
+		if (Bucket.lists.length > 0) {
+			this.renderTodos(Bucket.todos);
+		}
 
 	},
+
+	// renderTodoForm: function () {
+	// 	var form = $('.add-todo-wrapper');
+
+	// 	var formTemplate = "<h1 class='new-header'>New item:</h1>"+
+	// 										 "<div class='add-todo group'>"+
+	// 										 "<textarea class='new-todo'></textarea>"+
+	// 										 "<button type='button' class='btn btn-success btn-lg add-btn'>Add Item</button>"+
+	// 										 "</div>";
+
+	// 	form.append(formTemplate);
+
+	// },
 
 
 
@@ -83,27 +139,27 @@ Bucket.Views.Main = Backbone.View.extend({
 // It would be cleaner and safer to use a templating engine like EJS to account for DRY code as well as
 // HTML escaping. Having the HTML here is purely for convenience in this demonstration.
 // This function also applies the appropriate classes and attributes to a to-do based on completion status.
-	renderTodos: function () {
-		var list = $('.todos');
-		Bucket.todos.forEach(function (todo) {
-			var statusClass, statusText;
+	// renderTodos: function () {
+	// 	var list = $('.todos');
+	// 	Bucket.todos.forEach(function (todo) {
+	// 		var statusClass, statusText;
 
-			if (todo.get('complete') === false) {
-				statusClass = 'stat-inc';
-				statusText = 'Complete';
-			} else {
-				statusClass = 'stat-comp';
-				statusText = 'Incomplete';
-			}
+	// 		if (todo.get('complete') === false) {
+	// 			statusClass = 'stat-inc';
+	// 			statusText = 'Complete';
+	// 		} else {
+	// 			statusClass = 'stat-comp';
+	// 			statusText = 'Incomplete';
+	// 		}
 
-			var todoTemplate = "<li class='todo group'><span class='todo-desc'>- "+todo.get('desc')+
-						"</span><span class='todo-status todo"+todo.id+"'><i data-id="+todo.id+" class='updt "+
-						statusClass+" fa fa-check-square-o'>  Mark as "+statusText+"</i><i data-id="+todo.id+" class='dlt fa fa-trash'>Delete</i></span></li>";
-			list.append(todoTemplate);
-		});
+	// 		var todoTemplate = "<li class='todo group'><span class='todo-desc'>- "+todo.get('desc')+
+	// 					"</span><span class='todo-status todo"+todo.id+"'><i data-id="+todo.id+" class='updt "+
+	// 					statusClass+" fa fa-check-square-o'>  Mark as "+statusText+"</i><i data-id="+todo.id+" class='dlt fa fa-trash'>Delete</i></span></li>";
+	// 		list.append(todoTemplate);
+	// 	});
 
 
-	},
+	// },
 
 // Adding a to-do: trigger event, grab text from input field, set description as attribute for new model, save model
 	addTodo: function (event) {
@@ -111,21 +167,21 @@ Bucket.Views.Main = Backbone.View.extend({
 		var that = this;
 
 		var text = $('.new-todo').val();
-		var todo = new Bucket.Models.Todo({desc: text, createdBy: this.currentUser.username});
+		var todo = new Bucket.Models.Todo({desc: text, createdBy: this.currentUser.username, listId: this.currentList.id});
 		todo.save({}, {
 			success: function (req, res) {
 				todo.set({id: res.objectId});
 				Bucket.todos.add(todo);
 			},
 			error: function (req, res) {
-				that.showError('.add-todo', res.message);
+				// that.showError('.add-todo', res.message);
 				// that.removeSpinner();
 				// $('.fa-spin').remove();
 				that.render();
 			}
 		});
 
-		this.addSpinner('.add-todo');
+		// this.addSpinner('.add-todo');
 	},
 
 
@@ -135,7 +191,7 @@ Bucket.Views.Main = Backbone.View.extend({
 		var that = this;
 		
 		var todoId = $(event.target).data('id');
-		that.addSpinner('.todo'+todoId);
+		// that.addSpinner('.todo'+todoId);
 
 		var todo = new Bucket.Models.Todo({id: todoId});
 		todo.fetch({
@@ -207,11 +263,20 @@ Bucket.Views.Main = Backbone.View.extend({
 		user.save({}, {
 			success: function (res, req) {
 				that.currentUser = res.attributes;
-				Bucket.todos.fetch({
-					success: function () {
-						that.removeSpinner();
+				Bucket.lists.fetch({
+					success: function (req, res) {
+						// debugger
+						that.currentList = Bucket.lists.toJSON()[0];
+						Bucket.todos.fetch({
+							data: {listId: Bucket.lists.toJSON()[0].id},
+							success: function () {
+								that.removeSpinner();
+							}
+						});
+						
 					}
-				});
+				})
+
 			},
 			error: function (res, req) {
 				that.showError('#sign-in', 'Invalid Credentials', 'login');
@@ -227,8 +292,8 @@ Bucket.Views.Main = Backbone.View.extend({
 		event.preventDefault();
 		var that = this;
 
-		var username = $('#inputUsername').val();
-		var password = $('#inputPassword').val();
+		var username = $('#inputUsernameSU').val();
+		var password = $('#inputPasswordSU').val();
 		var passCheck = $('#reInputPassword').val();
 
 		var user = new Bucket.Models.User({
@@ -241,7 +306,9 @@ Bucket.Views.Main = Backbone.View.extend({
 			success: function (req, res) {
 				that.currentUser = res;
 				console.log(that.currentUser);
+				Bucket.lists.fetch();
 				Bucket.todos.fetch({
+					data: {listId: ""},
 					success: function () {
 						that.render();
 					}
@@ -270,7 +337,6 @@ Bucket.Views.Main = Backbone.View.extend({
 				that.render();
 			},
 			error: function (req, res) {
-				debugger
 			}
 		})
 
@@ -299,6 +365,54 @@ Bucket.Views.Main = Backbone.View.extend({
 
 	removeSpinner: function () {
 		$('.fa-spin').remove();
+
+	},
+
+
+	renderLogOut: function () {
+		var template = "<button type='button' class='btn btn-danger logout' style='display:block;margin-bottom:20px'>Sign Out</button>";
+		$(this.el).append(template);
+	},
+
+	renderLists: function (lists) {
+		var template = "<div class='dropdown' style='float:left'>"+
+							"<button class='btn btn-default dropdown-toggle' type='button' id='dropdownMenu1' data-toggle='dropdown' aria-haspopup='true' aria-expanded='true'>"+
+							"Your Lists<span class='caret'></span></button>"+
+							"<ul class='dropdown-menu' aria-labelledby='dropdownMenu1'>"+
+							"</ul></div>";
+
+		$(this.el).append(template);
+		lists.forEach(function (list) {
+			var list_item = "<li><a class='list-drop' data-id="+list.get('id')+">"+list.get('title')+"</a></li>";
+			$('.dropdown-menu').append(list_item);
+		});
+	},
+
+	renderListForm: function () {
+		var template = "<div class='input-group' style='width:315px;float:left'>"+
+							"<input type='text' class='form-control new-list' placeholder='List Title'>"+
+							"<span class='input-group-btn'>"+
+							"<button class='btn btn-default create-list' type='button'>Create List</button></span></div>";
+
+		$(this.el).append(template);
+	},
+
+	renderTodos: function (todos) {
+		// var this.currentList = this.currentList || Bucket.lists.models[0].get('title');
+		var template = "<ul class='container list-group todos-container' style='width:700px;float:right'></ul>";
+		var todoForm = "<li class='list-group-item'><div class='input-group'>"+
+							"<input type='text' class='form-control new-todo' placeholder='Add a todo'>"+
+							"<span class='input-group-btn'>"+
+							"<button class='btn btn-default create-todo' type='button'>Add!</button></span></div></li>";
+
+		$(this.el).append(template);
+		// debugger
+		$('.todos-container').append("<li class='list-group-item' style='text-align:center;font-weight:bold;font-size:30px'>"+this.currentList.title+"</li>");
+		todos.forEach(function (todo) {
+			var listItem = "<li class='list-group-item'>"+todo.get('desc')+"<span class='badge btn' id='dlt-todo' data-id="+todo.get('id')+">Delete</span><span class='badge btn updt-todo' data-id="+todo.get('id')+">Update</span></li>"
+			$(".todos-container").append(listItem);
+		});
+		$(".todos-container").append(todoForm);
 
 	}
 

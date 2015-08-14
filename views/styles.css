@@ -27,7 +27,10 @@ body {
 	background-color: #ecf0f1;
 }
 
-
+#dlt-todo {
+	  background-color: #d9534f;
+  border-color: #d43f3a;
+}
 
 /*clearfix*/
 .group:after {

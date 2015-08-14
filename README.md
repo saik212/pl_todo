@@ -6,4 +6,4 @@
 - This application is a demonstration of connecting Node, Backbone, and Parse to create a basic Todo app
 
 
-###Run app.js and open on port 1337
+###Run app.js and open on port 1337 or go to pltodo.herokuapp.com

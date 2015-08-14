@@ -9,6 +9,10 @@ window.Bucket = {
 	initialize: function() {
 
 		// set Model constructora
+		Bucket.Models.List = Backbone.Model.extend({
+			urlRoot: 'api/lists'
+		});
+
 		Bucket.Models.Todo = Backbone.Model.extend({
 			urlRoot: 'api/todos'
 		});
@@ -27,17 +31,32 @@ window.Bucket = {
 			model: Bucket.Models.Todo
 		});
 
+		Bucket.Collections.Lists = Backbone.Collection.extend({
+			url:'api/lists',
+			model: Bucket.Models.List
+		});
+
 
 		// Fetch and hold onto todos collection at the start so it can be worked with right away.
 		Bucket.todos = new Bucket.Collections.Todos();
-		Bucket.todos.fetch();
+		Bucket.lists = new Bucket.Collections.Lists();
+
 
 
 		Bucket.currentUser = new Bucket.Models.CurrentUser();
 		Bucket.currentUser.fetch({
 			success: function (req, res) {
 				console.log('hello world from currentUser fetch! Success');
-				Bucket.mainView = new Bucket.Views.Main({el: "#content", currentUser: res});		
+				Bucket.lists.fetch({
+					success: function () {
+						var listId = '';
+						if (Bucket.lists.length > 0) {
+							listId = Bucket.lists.toJSON()[0].id;
+						}
+						Bucket.todos.fetch({data: { listId: listId }});
+						Bucket.mainView = new Bucket.Views.Main({el: "#content", currentUser: res});		
+					}
+				});
 			},
 			error: function (req, res) {
 				console.log('hello world from currentUser fetch! Error!');
@@ -50,12 +69,6 @@ window.Bucket = {
 	}
 
 };
-
-// Using the keys here is just for convenience. In a real setting, I would use third-party modules
-// like Figaro to hide the keys and only use them in a production environment.
-// Parse is used on the client side for ease of use with the User.current() object. All communication
-// with Parse would realistically be dealt with on the server, and I would create a CurrentUser model in Backbone
-// which would communicate to the server
 
 $(document).ready(function () {
 	Bucket.initialize();

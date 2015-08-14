@@ -7,6 +7,7 @@ var express = require('express');
 var router = express.Router();
 var Parse = require('parse').Parse;
 var Todo = Parse.Object.extend('Todo');
+var List = Parse.Object.extend('List');
 Parse.User.enableUnsafeCurrentUser();
 
 
@@ -102,6 +103,73 @@ router.get('/', function (req, res) {
 		});
 
 
+// CRUD for lists
+router.route('/api/lists')
+	.get(function (req, res) {
+		if (Parse.User.current()) {
+			var query = new Parse.Query(List);
+			query.equalTo('createdBy', Parse.User.current().attributes.username);
+			query.find({
+				success: function (results) {
+					res.status(200);
+					res.json(parseTodos(results));
+				},
+				error: function(error) {
+					res.status(400);
+					res.json(error.message);
+				}
+			});
+		} else {
+			res.status(200);
+			res.json([]);
+		}
+
+	})
+
+	.post(function (req, res) {
+		var list = new List();
+		list.set('title', req.body.title);
+		list.set('createdBy', Parse.User.current().attributes.username);
+		list.save(null, {
+			success: function (list) {
+				res.status(200);
+				res.json(list);
+			},
+			error: function (list, error) {
+				res.status(400);
+				res.json(error.message);
+				console.log(error);
+			}
+		});
+	});
+
+router.route('/api/lists/:id')
+	.delete(function (req, res) {
+		var query = new Parse.Query(List);
+		query.equalTo('objectId', req.params.id);
+		query.first({
+			success: function (object) {
+				object.destroy({
+					success: function () {
+						res.status(200);
+						res.json(object);
+					},
+					error: function (error) {
+						res.status(400);
+						res.json(error.message);
+						res.json('could not destroy');
+					}
+				})
+			},
+			error: function (results, error) {
+				res.status(404);
+				res.json(error.message);
+				console.log(error);
+			}
+		});
+	})
+
+
 
 // Basic CRUD for todos
 
@@ -110,7 +178,7 @@ router.route('/api/todos')
 	.get(function (req, res) {
 		if (Parse.User.current()) {
 			var query = new Parse.Query(Todo);
-			query.equalTo('createdBy', Parse.User.current().attributes.username);
+			query.equalTo('listId', req.query.listId);
 			query.find({
 				success: function (results) {
 					res.status(200);
@@ -134,6 +202,7 @@ router.route('/api/todos')
 		todo.set('createdBy', req.body.createdBy);
 		todo.set('desc', req.body.desc);
 		todo.set('complete', false);
+		todo.set('listId', req.body.listId);
 		todo.save(null, {
 			success: function () {
 				res.status(200);
