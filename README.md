@@ -8,4 +8,4 @@
 
 ###Run app.js and open on port 1337
 
-###Link: [Bucket List](pltodo.herokuapp.com)
+###Link: [Bucket List](http://pltodo.herokuapp.com)
